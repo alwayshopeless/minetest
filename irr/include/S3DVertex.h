@@ -63,6 +63,7 @@ struct S3DVertex
 
 	//! Color
 	SColor Color;
+	SColor AmbientColor = 0xffffffff;
 
 	//! Texture coordinates
 	core::vector2df TCoords;

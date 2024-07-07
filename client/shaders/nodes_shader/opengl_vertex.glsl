@@ -5,7 +5,6 @@ uniform vec3 dayLight;
 // The cameraOffset is the current center of the visible world.
 uniform highp vec3 cameraOffset;
 uniform float animationTimer;
-
 varying vec3 vNormal;
 varying vec3 vPosition;
 // World position in the visible world (i.e. relative to the cameraOffset.)

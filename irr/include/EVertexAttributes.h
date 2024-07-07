@@ -15,7 +15,8 @@ enum E_VERTEX_ATTRIBUTES
 	EVA_TCOORD1,
 	EVA_TANGENT,
 	EVA_BINORMAL,
-	EVA_COUNT
+	EVA_COUNT,
+	EVA_AMBIENT_COLOR,
 };
 
 //! Array holding the built in vertex attribute names
@@ -28,6 +29,7 @@ const char *const sBuiltInVertexAttributeNames[] = {
 		"inVertexTangent",
 		"inVertexBinormal",
 		0,
+				"inVertexColorEx",
 	};
 
 } // end namespace video

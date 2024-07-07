@@ -447,5 +447,8 @@ void main(void)
 	col = mix(fogColor, col, clarity);
 	col = vec4(col.rgb, base.a);
 
+	vec4 test = varColor;
+	test.r = 0.0;
+	test.g = 0.0;
 	gl_FragData[0] = col;
 }

@@ -291,6 +291,7 @@ bool COpenGLDriver::updateVertexHardwareBuffer(SHWBufferLink_opengl *HWBuffer)
 			const S3DVertex *po = static_cast<const S3DVertex *>(vertices);
 			for (u32 i = 0; i < vertexCount; i++) {
 				po[i].Color.toOpenGLColor((u8 *)&(pb[i].Color));
+				po[i].AmbientColor.toOpenGLColor((u8 *)&(pb[i].AmbientColor));
 			}
 		} break;
 		case EVT_2TCOORDS: {
@@ -327,18 +328,74 @@ bool COpenGLDriver::updateVertexHardwareBuffer(SHWBufferLink_opengl *HWBuffer)
 	extGlBindBuffer(GL_ARRAY_BUFFER, HWBuffer->vbo_verticesID);
 
 	// copy data to graphics card
-	if (!newBuffer)
-		extGlBufferSubData(GL_ARRAY_BUFFER, 0, vertexCount * vertexSize, vbuf);
-	else {
-		HWBuffer->vbo_verticesSize = vertexCount * vertexSize;
+	// if (!newBuffer)
+	// 	extGlBufferSubData(GL_ARRAY_BUFFER, 0, vertexCount * vertexSize, vbuf);
+	// else {
+	// 	HWBuffer->vbo_verticesSize = vertexCount * vertexSize;
 
-		if (HWBuffer->Mapped_Vertex == scene::EHM_STATIC)
-			extGlBufferData(GL_ARRAY_BUFFER, vertexCount * vertexSize, vbuf, GL_STATIC_DRAW);
-		else if (HWBuffer->Mapped_Vertex == scene::EHM_DYNAMIC)
-			extGlBufferData(GL_ARRAY_BUFFER, vertexCount * vertexSize, vbuf, GL_DYNAMIC_DRAW);
-		else // scene::EHM_STREAM
-			extGlBufferData(GL_ARRAY_BUFFER, vertexCount * vertexSize, vbuf, GL_STREAM_DRAW);
-	}
+	// 	if (HWBuffer->Mapped_Vertex == scene::EHM_STATIC)
+	// 		extGlBufferData(GL_ARRAY_BUFFER, vertexCount * vertexSize, vbuf, GL_STATIC_DRAW);
+	// 	else if (HWBuffer->Mapped_Vertex == scene::EHM_DYNAMIC)
+	// 		extGlBufferData(GL_ARRAY_BUFFER, vertexCount * vertexSize, vbuf, GL_DYNAMIC_DRAW);
+	// 	else // scene::EHM_STREAM
+	// 		extGlBufferData(GL_ARRAY_BUFFER, vertexCount * vertexSize, vbuf, GL_STREAM_DRAW);		
+	// }
+	extGlBufferData(GL_ARRAY_BUFFER, vertexCount * vertexSize, vbuf, GL_STATIC_DRAW);
+	std::vector<core::vector3df> positions;
+    std::vector<core::vector3df> normals;
+    std::vector<SColor> colors;
+	std::vector<SColor> ambientColors;
+    std::vector<core::vector2df> tcoords;
+	 positions.reserve(vertexCount);
+    normals.reserve(vertexCount);
+    colors.reserve(vertexCount);
+	ambientColors.reserve(vertexCount);
+    tcoords.reserve(vertexCount);
+	const S3DVertex *po = static_cast<const S3DVertex *>(vertices);
+	for (u32 i = 0; i < vertexCount; i++) {
+        positions.push_back(po[i].Pos);
+        normals.push_back(po[i].Normal);
+        colors.push_back(po[i].Color);
+		ambientColors.push_back(po[i].AmbientColor);
+        tcoords.push_back(po[i].TCoords);
+    }
+
+	GLsizeiptr positionsSize = positions.size() * sizeof(core::vector3df);
+    GLsizeiptr normalsSize = normals.size() * sizeof(core::vector3df);
+    GLsizeiptr colorsSize = colors.size() * sizeof(SColor);
+	GLsizeiptr ambientColorsSize = ambientColors.size() * sizeof(SColor);
+    GLsizeiptr tcoordsSize = tcoords.size() * sizeof(core::vector2df);
+
+	GLsizeiptr totalSize = positionsSize + normalsSize + colorsSize + tcoordsSize;
+
+	GLsizeiptr offset = 0;
+
+    extGlBufferSubData(GL_ARRAY_BUFFER, offset, positionsSize, positions.data());
+    offset += positionsSize;
+    extGlBufferSubData(GL_ARRAY_BUFFER, offset, colorsSize, colors.data());
+    offset += colorsSize;
+	extGlBufferSubData(GL_ARRAY_BUFFER, offset, ambientColorsSize, ambientColors.data());
+    offset += ambientColorsSize;
+    extGlBufferSubData(GL_ARRAY_BUFFER, offset, tcoordsSize, tcoords.data());
+    offset += tcoordsSize;
+    extGlBufferSubData(GL_ARRAY_BUFFER, offset, normalsSize, normals.data());
+
+
+	extGlVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(core::vector3df), reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(0);
+
+    extGlVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(SColor), reinterpret_cast<void*>(positionsSize));
+    glEnableVertexAttribArray(1);
+
+    extGlVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(SColor), reinterpret_cast<void*>(positionsSize + colorsSize));
+    glEnableVertexAttribArray(2);
+
+    extGlVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(core::vector2df), reinterpret_cast<void*>(positionsSize + colorsSize + ambientColorsSize));
+    glEnableVertexAttribArray(3);
+
+    extGlVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(core::vector3df), reinterpret_cast<void*>(positionsSize + colorsSize + ambientColorsSize + tcoordsSize));
+    glEnableVertexAttribArray(4);
+	
 
 	extGlBindBuffer(GL_ARRAY_BUFFER, 0);
 

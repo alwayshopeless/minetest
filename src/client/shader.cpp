@@ -574,6 +574,7 @@ ShaderInfo ShaderSource::generateShader(const std::string &name,
 			shaders_header << "#version 100\n";
 		}
 		vertex_header = R"(
+			layout (location = 2) in vec4 vecColExtra;
 			precision mediump float;
 
 			uniform highp mat4 mWorldView;
