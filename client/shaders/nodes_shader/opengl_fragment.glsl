@@ -31,6 +31,8 @@ uniform float animationTimer;
 
 varying vec3 vNormal;
 varying vec3 vPosition;
+uniform float main_shadow_factor;
+
 // World position in the visible world (i.e. relative to the cameraOffset.)
 // This can be used for many shader effects without loss of precision.
 // If the absolute position is required it can be calculated with
@@ -38,6 +40,8 @@ varying vec3 vPosition;
 // precision must be considered).
 varying vec3 worldPosition;
 varying lowp vec4 varColor;
+varying lowp vec4 varColorEx;
+
 #ifdef GL_ES
 varying mediump vec2 varTexCoord;
 #else
@@ -423,7 +427,6 @@ void main(void)
 		}
 
 		shadow_int *= f_adj_shadow_strength;
-
 		// calculate fragment color from components:
 		col.rgb =
 				adjusted_night_ratio * col.rgb + // artificial light
@@ -446,9 +449,5 @@ void main(void)
 		- fogShadingParameter * length(eyeVec) / fogDistance, 0.0, 1.0);
 	col = mix(fogColor, col, clarity);
 	col = vec4(col.rgb, base.a);
-
-	vec4 test = varColor;
-	test.r = 0.0;
-	test.g = 0.0;
 	gl_FragData[0] = col;
 }

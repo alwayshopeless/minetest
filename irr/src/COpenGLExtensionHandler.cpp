@@ -47,6 +47,10 @@ COpenGLExtensionHandler::COpenGLExtensionHandler() :
 		pGlUniformMatrix3x2fv(0), pGlUniformMatrix3fvARB(0), pGlUniformMatrix3x4fv(0),
 		pGlUniformMatrix4x2fv(0), pGlUniformMatrix4x3fv(0), pGlUniformMatrix4fvARB(0),
 		pGlGetActiveUniformARB(0), pGlGetActiveUniform(0),
+		//attrib
+		pGlDisableVertexAttribArray(0), pGlEnableVertexAttribArray(0),
+		pGlGetAttribLocation(0), pGlVertexAttribPointer(0),
+		//attrib end
 		pGlPointParameterfARB(0), pGlPointParameterfvARB(0),
 		pGlStencilFuncSeparate(0), pGlStencilOpSeparate(0),
 		pGlStencilFuncSeparateATI(0), pGlStencilOpSeparateATI(0),
@@ -238,6 +242,13 @@ void COpenGLExtensionHandler::initExtensions(video::IContextManager *cmgr, bool 
 	pGlUniformMatrix4fvARB = (PFNGLUNIFORMMATRIX4FVARBPROC)IRR_OGL_LOAD_EXTENSION("glUniformMatrix4fvARB");
 	pGlGetActiveUniformARB = (PFNGLGETACTIVEUNIFORMARBPROC)IRR_OGL_LOAD_EXTENSION("glGetActiveUniformARB");
 	pGlGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC)IRR_OGL_LOAD_EXTENSION("glGetActiveUniform");
+
+	//attrib
+	pGlDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC) IRR_OGL_LOAD_EXTENSION("glDisableVertexAttribArray");
+	pGlEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) IRR_OGL_LOAD_EXTENSION("glEnableVertexAttribArray");
+	pGlGetAttribLocation = (PFNGLGETATTRIBLOCATIONARBPROC) IRR_OGL_LOAD_EXTENSION("glGetAttribLocation");
+	pGlVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) IRR_OGL_LOAD_EXTENSION("glVertexAttribPointer");
+	//attrib end
 
 	// get point parameter extension
 	pGlPointParameterfARB = (PFNGLPOINTPARAMETERFARBPROC)IRR_OGL_LOAD_EXTENSION("glPointParameterfARB");

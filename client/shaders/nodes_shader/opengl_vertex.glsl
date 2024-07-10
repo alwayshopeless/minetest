@@ -14,6 +14,8 @@ varying vec3 vPosition;
 // precision must be considered).
 varying vec3 worldPosition;
 varying lowp vec4 varColor;
+varying lowp vec4 varColorEx;
+
 // The centroid keyword ensures that after interpolation the texture coordinates
 // lie within the same bounds when MSAA is en- and disabled.
 // This fixes the stripes problem with nearest-neighbor textures and MSAA.
@@ -51,6 +53,8 @@ const float BS = 10.0;
 uniform float xyPerspectiveBias0;
 uniform float xyPerspectiveBias1;
 uniform float zPerspectiveBias;
+uniform float main_shadow_factor;
+uniform float ambient_occlusion_factor;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 
@@ -208,6 +212,9 @@ void main(void)
 	vec4 color = inVertexColor;
 #endif
 	// The alpha gives the ratio of sunlight in the incoming light.
+	// color = inVertexColorEx;
+	// color = vec4(clamp(main_shadow_factor + color.rgb, 0, 1) * clamp(ambient_occlusion_factor + inVertexColorEx.rgb, 0, 1), 1.0);
+	color = inVertexColor + ambient_occlusion_factor;
 	nightRatio = 1.0 - color.a;
 	color.rgb = color.rgb * (color.a * dayLight.rgb +
 		nightRatio * artificialLight.rgb) * 2.0;
@@ -220,6 +227,8 @@ void main(void)
 		0.07 * brightness);
 
 	varColor = clamp(color, 0.0, 1.0);
+	// varColorEx = inVertexColorEx;
+	varColorEx = clamp(inVertexColorEx, 0.0, 1.0);
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	if (f_shadow_strength > 0.0) {

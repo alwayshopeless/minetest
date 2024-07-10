@@ -1,7 +1,9 @@
 local lighting_sections = {
 	{n = "shadows", d = "Shadows",
 		entries = {
-			{ n = "intensity", d = "Shadow Intensity", min = 0, max = 1 }
+			{ n = "intensity", d = "Shadow Intensity", min = 0, max = 1 },
+			{n = "main_shadow_factor", d = "Main shadow factor", min = 0, max = 1},
+			{n = "ambient_occlusion_factor", d = "Ambient occlussion factor", min = 0, max = 1}
 		}
 	},
 	{

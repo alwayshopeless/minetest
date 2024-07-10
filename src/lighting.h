@@ -54,4 +54,7 @@ struct Lighting
 	float shadow_intensity {0.0f};
 	float saturation {1.0f};
 	float volumetric_light_strength {0.0f};
+	
+	float main_shadow_factor {1.0f};
+	float ambient_occlusion_factor {1.0f};
 };

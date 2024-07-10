@@ -89,7 +89,6 @@ scene::IAnimatedMesh* createCubeMesh(v3f scale)
 		video::S3DVertex(+0.5,+0.5,-0.5, 0,0,-1, c, 1,0),
 		video::S3DVertex(+0.5,-0.5,-0.5, 0,0,-1, c, 1,1),
 	};
-
 	u16 indices[6] = {0,1,2,2,3,0};
 
 	scene::SMesh *mesh = new scene::SMesh();

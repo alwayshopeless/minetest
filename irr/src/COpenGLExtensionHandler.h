@@ -1141,6 +1141,13 @@ public:
 	void extGlGetActiveUniformARB(GLhandleARB program, GLuint index, GLsizei maxlength, GLsizei *length, GLint *size, GLenum *type, GLcharARB *name);
 	void extGlGetActiveUniform(GLuint program, GLuint index, GLsizei maxlength, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
 
+
+	//attr
+	void extGlDisableVertexAttribArray(GLuint index);
+	void extGlEnableVertexAttribArray(GLuint index);
+	GLint extGlGetAttribLocation(GLuint program, const GLchar *name);
+	void extGlVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer);
+	//end attr
 	// framebuffer objects
 	void irrGlBindFramebuffer(GLenum target, GLuint framebuffer);
 	void irrGlDeleteFramebuffers(GLsizei n, const GLuint *framebuffers);
@@ -1300,6 +1307,13 @@ protected:
 	PFNGLRENDERBUFFERSTORAGEPROC pGlRenderbufferStorage;
 	PFNGLFRAMEBUFFERRENDERBUFFERPROC pGlFramebufferRenderbuffer;
 	PFNGLGENERATEMIPMAPPROC pGlGenerateMipmap;
+
+	// EXT vertex attribute pointer
+		PFNGLDISABLEVERTEXATTRIBARRAYPROC pGlDisableVertexAttribArray;
+		PFNGLENABLEVERTEXATTRIBARRAYPROC pGlEnableVertexAttribArray;
+		PFNGLGETATTRIBLOCATIONARBPROC pGlGetAttribLocation;
+		PFNGLVERTEXATTRIBPOINTERPROC pGlVertexAttribPointer;
+	// END 
 	// EXT framebuffer object
 	PFNGLBINDFRAMEBUFFEREXTPROC pGlBindFramebufferEXT;
 	PFNGLDELETEFRAMEBUFFERSEXTPROC pGlDeleteFramebuffersEXT;
@@ -1404,6 +1418,61 @@ protected:
 	PFNGLXSWAPINTERVALMESAPROC pGlxSwapIntervalMESA;
 #endif
 };
+
+//attrib
+
+inline void COpenGLExtensionHandler::extGlDisableVertexAttribArray(GLuint index)
+{
+#ifdef _IRR_OPENGL_USE_EXTPOINTER_
+	if (pGlDisableVertexAttribArray)
+		pGlDisableVertexAttribArray(index);
+#elif defined(GL_VERSION_2_0)
+	pGlDisableVertexAttribArray(index);
+#else
+	os::Printer::log("glDisableVertexAttribArray not supported", ELL_ERROR);
+#endif
+}
+
+inline void COpenGLExtensionHandler::extGlEnableVertexAttribArray(GLuint index)
+{
+#ifdef _IRR_OPENGL_USE_EXTPOINTER_
+	if (pGlEnableVertexAttribArray)
+		pGlEnableVertexAttribArray(index);
+#elif defined(GL_VERSION_2_0)
+	pGlEnableVertexAttribArray(index);
+#else
+	os::Printer::log("glEnableVertexAttribArray not supported", ELL_ERROR);
+#endif
+}
+
+inline GLint COpenGLExtensionHandler::extGlGetAttribLocation(GLuint program, const GLchar *name)
+{
+#ifdef _IRR_OPENGL_USE_EXTPOINTER_
+	if (pGlGetAttribLocation)
+		return pGlGetAttribLocation(program, name);
+	else
+		return -1;
+#elif defined(GL_VERSION_2_0)
+	return pGlGetAttribLocation(program, name);
+#else
+	os::Printer::log("glGetAttribLocation not supported", ELL_ERROR);
+#endif
+}
+
+inline void COpenGLExtensionHandler::extGlVertexAttribPointer(GLuint index, GLint size, GLenum type,
+	GLboolean normalized, GLsizei stride, const GLvoid *pointer)
+{
+#ifdef _IRR_OPENGL_USE_EXTPOINTER_
+	if (pGlVertexAttribPointer)
+		pGlVertexAttribPointer(index, size, type, normalized, stride, pointer);
+#elif defined(GL_VERSION_2_0)
+	pGlVertexAttribPointer(index, size, type, normalized, stride, pointer);
+#else
+	os::Printer::log("glVertexAttribPointer not supported", ELL_ERROR);
+#endif
+}
+
+// attrib
 
 inline void COpenGLExtensionHandler::irrGlActiveTexture(GLenum texture)
 {

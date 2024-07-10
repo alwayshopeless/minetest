@@ -240,7 +240,6 @@ void MapblockMeshGenerator::drawCuboid(const aabb3f &box,
 	assert(tilecount >= 1 && tilecount <= 6); // pre-condition
 
 	auto vertices = setupCuboidVertices(box, txc, tiles, tilecount);
-
 	for (int k = 0; k < 6; ++k) {
 		if (mask & (1 << k))
 			continue;
@@ -462,21 +461,29 @@ void MapblockMeshGenerator::drawSolidNode()
 	generateCuboidTextureCoords(box, texture_coord_buf);
 	if (data->m_smooth_lighting) {
 		LightPair lights[6][4];
+		LightPair lights_ao[6][4];
 		for (int face = 0; face < 6; ++face) {
 			for (int k = 0; k < 4; k++) {
 				v3s16 corner = light_dirs[light_indices[face][k]];
 				lights[face][k] = LightPair(getSmoothLightSolid(
+						blockpos_nodes + cur_node.p, tile_dirs[face], corner, data));
+				lights_ao[face][k] = LightPair(getAmbientOcclusion(
 						blockpos_nodes + cur_node.p, tile_dirs[face], corner, data));
 			}
 		}
 
 		drawCuboid(box, tiles, 6, texture_coord_buf, mask, [&] (int face, video::S3DVertex vertices[4]) {
 			auto final_lights = lights[face];
+			auto final_lights_ao = lights_ao[face];
 			for (int j = 0; j < 4; j++) {
 				video::S3DVertex &vertex = vertices[j];
 				vertex.Color = encode_light(final_lights[j], cur_node.f->light_source);
+				// vertex.AmbientColor = encode_light(final_lights_ao[j], cur_node.f->light_source);
+				vertex.AmbientColor = encode_light(final_lights_ao[j], cur_node.f->light_source);
 				if (!cur_node.f->light_source)
 					applyFacesShading(vertex.Color, vertex.Normal);
+					// applyFacesShading(vertex.AmbientColor, vertex.Normal);
+
 			}
 			if (lightDiff(final_lights[1], final_lights[3]) < lightDiff(final_lights[0], final_lights[2]))
 				return QuadDiagonal::Diag13;

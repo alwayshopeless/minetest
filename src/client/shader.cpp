@@ -574,7 +574,7 @@ ShaderInfo ShaderSource::generateShader(const std::string &name,
 			shaders_header << "#version 100\n";
 		}
 		vertex_header = R"(
-			layout (location = 2) in vec4 vecColExtra;
+			// layout (location = 2) in vec4 vecColExtra;
 			precision mediump float;
 
 			uniform highp mat4 mWorldView;
@@ -583,6 +583,7 @@ ShaderInfo ShaderSource::generateShader(const std::string &name,
 
 			attribute highp vec4 inVertexPosition;
 			attribute lowp vec4 inVertexColor;
+			attribute lowp vec4 inVertexColorEx;
 			attribute mediump vec4 inTexCoord0;
 			attribute mediump vec3 inVertexNormal;
 			attribute mediump vec4 inVertexTangent;

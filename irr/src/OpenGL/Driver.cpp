@@ -64,6 +64,7 @@ static const VertexType vtStandard = {
 				{EVA_POSITION, 3, GL_FLOAT, VertexAttribute::Mode::Regular, offsetof(S3DVertex, Pos)},
 				{EVA_NORMAL, 3, GL_FLOAT, VertexAttribute::Mode::Regular, offsetof(S3DVertex, Normal)},
 				{EVA_COLOR, 4, GL_UNSIGNED_BYTE, VertexAttribute::Mode::Normalized, offsetof(S3DVertex, Color)},
+				{EVA_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, VertexAttribute::Mode::Normalized, offsetof(S3DVertex, AmbientColor)},
 				{EVA_TCOORD0, 2, GL_FLOAT, VertexAttribute::Mode::Regular, offsetof(S3DVertex, TCoords)},
 		},
 };
@@ -521,6 +522,7 @@ bool COpenGL3DriverBase::updateVertexHardwareBuffer(SHWBufferLink_opengl *HWBuff
 		else if (HWBuffer->Mapped_Index == scene::EHM_DYNAMIC)
 			usage = GL_DYNAMIC_DRAW;
 		GL.BufferData(GL_ARRAY_BUFFER, bufferSize, buffer, usage);
+		
 	}
 
 	GL.BindBuffer(GL_ARRAY_BUFFER, 0);
@@ -714,7 +716,7 @@ void COpenGL3DriverBase::drawVertexPrimitiveList(const void *vertices, u32 verte
 
 	if (!checkPrimitiveCount(primitiveCount))
 		return;
-
+	
 	CNullDriver::drawVertexPrimitiveList(vertices, vertexCount, indexList, primitiveCount, vType, pType, iType);
 
 	setRenderStates3DMode();

@@ -407,6 +407,9 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	float m_bloom_strength;
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel{"bloomRadius"};
 	float m_bloom_radius;
+	CachedPixelShaderSetting<float> m_ambient_occlusion_factor_pixel{"ambient_occlusion_factor"};
+	CachedPixelShaderSetting<float> m_main_shadow_factor_pixel{"main_shadow_factor"};
+
 	CachedPixelShaderSetting<float> m_saturation_pixel{"saturation"};
 	bool m_volumetric_light_enabled;
 	CachedPixelShaderSetting<float, 3>
@@ -523,6 +526,14 @@ public:
 		}
 
 		const auto &lighting = m_client->getEnv().getLocalPlayer()->getLighting();
+
+		float main_shadow_factor = lighting.main_shadow_factor;
+		m_main_shadow_factor_pixel.set(&main_shadow_factor, services);
+
+		float ambient_occlusion_factor = lighting.ambient_occlusion_factor;
+		m_ambient_occlusion_factor_pixel.set(&ambient_occlusion_factor, services);
+
+
 		float saturation = lighting.saturation;
 		m_saturation_pixel.set(&saturation, services);
 
