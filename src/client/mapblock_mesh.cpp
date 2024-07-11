@@ -252,15 +252,18 @@ static u16 getSmoothLightCombined(const v3s16 &p,
 
 static u16 getLightCombinedWithoutAO(const v3s16 &p, const std::array<v3s16,8> &dirs, MeshMakeData *data)
 {
-	const NodeDefManager *ndef = data->nodedef;
+		const NodeDefManager *ndef = data->nodedef;
 
+	u16 light_count = 0;
 	u8 light_source_max = 0;
 	u16 light_day = 0;
 	u16 light_night = 0;
-	u16 light_count = 0;
 	bool direct_sunlight = false;
 
-	auto add_node = [&] (u8 i) -> bool {
+	auto add_node = [&] (u8 i, bool obstructed = false) -> bool {
+		if (obstructed) {
+			return false;
+		}
 		MapNode n = data->m_vmanip.getNodeNoExNoEmerge(p + dirs[i]);
 		if (n.getContent() == CONTENT_IGNORE)
 			return true;
@@ -276,18 +279,25 @@ static u16 getLightCombinedWithoutAO(const v3s16 &p, const std::array<v3s16,8> &
 			light_day += decode_light(light_level_day);
 			light_night += decode_light(light_level_night);
 			light_count++;
-		}
+		} 
 		return f.light_propagates;
 	};
 
+	bool obstructed[4] = { true, true, true, true };
 	add_node(0);
-	add_node(1);
-	add_node(2);
-	add_node(3);
-	add_node(4);
-	add_node(5);
-	add_node(6);
-	add_node(7);
+	bool opaque1 = !add_node(1);
+	bool opaque2 = !add_node(2);
+	bool opaque3 = !add_node(3);
+	obstructed[0] = opaque1 && opaque2;
+	obstructed[1] = opaque1 && opaque3;
+	obstructed[2] = opaque2 && opaque3;
+	for (u8 k = 0; k < 3; ++k)
+		if (add_node(k + 4, obstructed[k]))
+			obstructed[3] = false;
+	if (add_node(7, obstructed[3])) { // wrap light around nodes
+		for (u8 k = 0; k < 3; ++k)
+			add_node(k + 4, !obstructed[k]);
+	}
 
 	if (light_count == 0) {
 		light_day = light_night = 0;
@@ -300,25 +310,37 @@ static u16 getLightCombinedWithoutAO(const v3s16 &p, const std::array<v3s16,8> &
 	if (direct_sunlight)
 		light_day = 0xFF;
 
+
 	// Boost brightness around light sources
+	bool skip_ambient_occlusion_day = false;
 	if (decode_light(light_source_max) >= light_day) {
 		light_day = decode_light(light_source_max);
+		skip_ambient_occlusion_day = true;
 	}
 
-	if (decode_light(light_source_max) >= light_night) {
+	bool skip_ambient_occlusion_night = false;
+	if(decode_light(light_source_max) >= light_night) {
 		light_night = decode_light(light_source_max);
+		skip_ambient_occlusion_night = true;
 	}
+
+
 
 	return light_day | (light_night << 8);
 }
 
 
-static u8 calculateAmbientOcclusion(const v3s16 &p, const std::array<v3s16,8> &dirs, MeshMakeData *data)
+static u16 calculateAmbientOcclusion(const v3s16 &p,
+	const std::array<v3s16,8> &dirs, MeshMakeData *data)
 {
 	const NodeDefManager *ndef = data->nodedef;
 
 	u16 ambient_occlusion = 0;
-	bool obstructed[4] = { false, false, false, false };
+	u16 light_count = 0;
+	u8 light_source_max = 0;
+	u16 light_day = 0;
+	u16 light_night = 0;
+	bool direct_sunlight = false;
 
 	auto add_node = [&] (u8 i, bool obstructed = false) -> bool {
 		if (obstructed) {
@@ -329,9 +351,25 @@ static u8 calculateAmbientOcclusion(const v3s16 &p, const std::array<v3s16,8> &d
 		if (n.getContent() == CONTENT_IGNORE)
 			return true;
 		const ContentFeatures &f = ndef->get(n);
+		if (f.light_source > light_source_max)
+			light_source_max = f.light_source;
+		// Check f.solidness because fast-style leaves look better this way
+		// solidness 2 mean noramal block
+		if (f.param_type == CPT_LIGHT && f.solidness != 2) {
+			u8 light_level_day = n.getLight(LIGHTBANK_DAY, f.getLightingFlags());
+			u8 light_level_night = n.getLight(LIGHTBANK_NIGHT, f.getLightingFlags());
+			if (light_level_day == LIGHT_SUN)
+				direct_sunlight = true;
+			light_day += decode_light(light_level_day);
+			light_night += decode_light(light_level_night);
+			light_count++;
+		} else {
+			ambient_occlusion++;
+		}
 		return f.light_propagates;
 	};
 
+	bool obstructed[4] = { true, true, true, true };
 	add_node(0);
 	bool opaque1 = !add_node(1);
 	bool opaque2 = !add_node(2);
@@ -347,19 +385,54 @@ static u8 calculateAmbientOcclusion(const v3s16 &p, const std::array<v3s16,8> &d
 		for (u8 k = 0; k < 3; ++k)
 			add_node(k + 4, !obstructed[k]);
 	}
-	static thread_local const float ao_gamma = rangelim(
+
+	if (light_count == 0) {
+		light_day = light_night = 0;
+	} else {
+		light_day /= light_count;
+		light_night /= light_count;
+	}
+
+	// boost direct sunlight, if any
+	// if (direct_sunlight)
+		light_day = 0xFF;
+
+	// Boost brightness around light sources
+	bool skip_ambient_occlusion_day = false;
+	if (decode_light(light_source_max) >= light_day) {
+		light_day = decode_light(light_source_max);
+		skip_ambient_occlusion_day = true;
+	}
+
+	bool skip_ambient_occlusion_night = false;
+	if(decode_light(light_source_max) >= light_night) {
+		light_night = decode_light(light_source_max);
+		skip_ambient_occlusion_night = true;
+	}
+
+	if (ambient_occlusion > 4) {
+		static thread_local const float ao_gamma = rangelim(
 			g_settings->getFloat("ambient_occlusion_gamma"), 0.25, 4.0);
 
-	static thread_local const float light_amount[3] = {
+		// Table of gamma space multiply factors.
+		static thread_local const float light_amount[3] = {
 			powf(0.75, 1.0 / ao_gamma),
 			powf(0.5,  1.0 / ao_gamma),
 			powf(0.25, 1.0 / ao_gamma)
 		};
 
-	u16 light_day = 0xFF;
-	light_day = rangelim(core::round32(
+		//calculate table index for gamma space multiplier
+		ambient_occlusion -= 5;
+
+		if (!skip_ambient_occlusion_day)
+			light_day = rangelim(core::round32(
 					light_day * light_amount[ambient_occlusion]), 0, 255);
-	return light_day;
+		if (!skip_ambient_occlusion_night)
+			light_night = rangelim(core::round32(
+					light_night * light_amount[ambient_occlusion]), 0, 255);
+	}
+
+	return light_day | (light_night << 8);
 }
 
 
@@ -402,7 +475,7 @@ u16 getSmoothLightTransparent(const v3s16 &p, const v3s16 &corner, MeshMakeData 
 	}};
 	
 	return getSmoothLightCombined(p, dirs, data);
-//	return getLightCombinedWithoutAO(p, dirs, data);
+	// return getLightCombinedWithoutAO(p, dirs, data);
 }
 
 u16 getSmoothLightTransparentAo(const v3s16 &p, const v3s16 &corner, MeshMakeData *data)
@@ -420,6 +493,7 @@ u16 getSmoothLightTransparentAo(const v3s16 &p, const v3s16 &corner, MeshMakeDat
 		v3s16(0,corner.Y,corner.Z),
 		v3s16(corner.X,corner.Y,corner.Z)
 	}};
+	// return getSmoothLightCombined(p, dirs, data);
 	return calculateAmbientOcclusion(p, dirs, data);
 }
 
@@ -1096,9 +1170,10 @@ void MapBlockMesh::consolidateTransparentBuffers()
 	}
 }
 
+
 video::SColor encode_light(u16 light, u8 emissive_light)
 {
-	// Get components
+// Get components
 	u32 day = (light & 0xff);
 	u32 night = (light >> 8);
 	// Add emissive light
@@ -1121,6 +1196,16 @@ video::SColor encode_light(u16 light, u8 emissive_light)
 		r = 0;
 	// Average light:
 	float b = (day + night) / 2;
+	return video::SColor(r, b, b, b);
+}
+
+
+video::SColor encode_light_ao(u16 light, u8 emissive_light)
+{
+	u32 day = light & 0xff;
+	u32 r;
+	r = day * 255 / 0xff;
+	float b = day;
 	return video::SColor(r, b, b, b);
 }
 

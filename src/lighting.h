@@ -28,6 +28,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
  * wanted_exposure = 2^exposure_correction / clamp(observed_luminance, 2^luminance_min, 2^luminance_max)
  *
  */
+#include "util/sha1.h"
+#include <cstdint>
+#include <sys/types.h>
 struct AutoExposure
 {
 	/// @brief Minimum boundary for computed luminance
@@ -57,4 +60,7 @@ struct Lighting
 	
 	float main_shadow_factor {1.0f};
 	float ambient_occlusion_factor {1.0f};
+	float normal_ao_factor {1.0f};
+
+	Uint32 ambient_light_color {0xffffffff};
 };

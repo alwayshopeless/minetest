@@ -32,6 +32,7 @@ uniform float animationTimer;
 varying vec3 vNormal;
 varying vec3 vPosition;
 uniform float main_shadow_factor;
+uniform float ambient_occlusion_factor;
 
 // World position in the visible world (i.e. relative to the cameraOffset.)
 // This can be used for many shader effects without loss of precision.
@@ -449,5 +450,8 @@ void main(void)
 		- fogShadingParameter * length(eyeVec) / fogDistance, 0.0, 1.0);
 	col = mix(fogColor, col, clarity);
 	col = vec4(col.rgb, base.a);
+	// if (varColorEx.r != 1) {
+	// col.rgb = mix(color.rgb, vec3(0,0,0), (1 -varColorEx.r));
+	// }
 	gl_FragData[0] = col;
 }

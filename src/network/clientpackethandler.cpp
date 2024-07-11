@@ -1819,4 +1819,8 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 		*pkt >> lighting.main_shadow_factor;
 	if (pkt->getRemainingBytes() >= 4)
 		*pkt >> lighting.ambient_occlusion_factor;
+	if (pkt->getRemainingBytes() >= 4)
+		*pkt >> lighting.normal_ao_factor;
+	if (pkt->getRemainingBytes() >= 4)
+		*pkt >> lighting.ambient_light_color;
 }

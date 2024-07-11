@@ -478,14 +478,16 @@ void MapblockMeshGenerator::drawSolidNode()
 			for (int j = 0; j < 4; j++) {
 				video::S3DVertex &vertex = vertices[j];
 				vertex.Color = encode_light(final_lights[j], cur_node.f->light_source);
+				vertex.AmbientColor = encode_light_ao(final_lights_ao[j], cur_node.f->light_source);
 				// vertex.AmbientColor = encode_light(final_lights_ao[j], cur_node.f->light_source);
-				vertex.AmbientColor = encode_light(final_lights_ao[j], cur_node.f->light_source);
-				if (!cur_node.f->light_source)
-					applyFacesShading(vertex.Color, vertex.Normal);
+				if (!cur_node.f->light_source) {
+					// applyFacesShading(vertex.Color, vertex.Normal);
 					// applyFacesShading(vertex.AmbientColor, vertex.Normal);
+				}
+
 
 			}
-			if (lightDiff(final_lights[1], final_lights[3]) < lightDiff(final_lights[0], final_lights[2]))
+			if (lightDiff(final_lights_ao[1], final_lights_ao[3]) < lightDiff(final_lights_ao[0], final_lights_ao[2]))
 				return QuadDiagonal::Diag13;
 			return QuadDiagonal::Diag02;
 		});

@@ -4,6 +4,8 @@ local lighting_sections = {
 			{ n = "intensity", d = "Shadow Intensity", min = 0, max = 1 },
 			{n = "main_shadow_factor", d = "Main shadow factor", min = 0, max = 1},
 			{n = "ambient_occlusion_factor", d = "Ambient occlussion factor", min = 0, max = 1}
+			{n = "normal_ao_factor", d = "Normal AO factor", min = 0, max = 1}
+			{n = "ambient_light_color", d = "Ambient light color", min = 0x000000ff, max = 0xffffffff}
 		}
 	},
 	{

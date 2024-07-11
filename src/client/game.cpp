@@ -19,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "game.h"
 
+#include <cstdio>
 #include <iomanip>
 #include <cmath>
 #include "client/renderingengine.h"
@@ -407,7 +408,9 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	float m_bloom_strength;
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel{"bloomRadius"};
 	float m_bloom_radius;
+	CachedPixelShaderSetting<float, 3> m_ambient_light_color_pixel{"ambient_light_color"};
 	CachedPixelShaderSetting<float> m_ambient_occlusion_factor_pixel{"ambient_occlusion_factor"};
+	CachedPixelShaderSetting<float> m_normal_ao_factor_pixel{"normal_ao_factor"};
 	CachedPixelShaderSetting<float> m_main_shadow_factor_pixel{"main_shadow_factor"};
 
 	CachedPixelShaderSetting<float> m_saturation_pixel{"saturation"};
@@ -532,6 +535,14 @@ public:
 
 		float ambient_occlusion_factor = lighting.ambient_occlusion_factor;
 		m_ambient_occlusion_factor_pixel.set(&ambient_occlusion_factor, services);
+
+
+		float normal_ao_factor = lighting.normal_ao_factor;
+		m_normal_ao_factor_pixel.set(&normal_ao_factor, services);
+
+		irr::video::SColorf ambient_light_scolorf = irr::video::SColor(lighting.ambient_light_color); 
+		m_ambient_light_color_pixel.set(ambient_light_scolorf, services);
+
 
 
 		float saturation = lighting.saturation;
