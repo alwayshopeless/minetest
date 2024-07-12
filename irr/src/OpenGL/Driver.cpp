@@ -685,7 +685,7 @@ void COpenGL3DriverBase::drawHardwareBuffer(SHWBufferLink *_HWBuffer)
 		GL.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, HWBuffer->vbo_indicesID);
 		indexList = 0;
 	}
-
+	
 	drawVertexPrimitiveList(vertices, mb->getVertexCount(),
 			indexList, mb->getPrimitiveCount(),
 			mb->getVertexType(), mb->getPrimitiveType(),

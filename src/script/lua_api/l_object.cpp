@@ -2541,7 +2541,7 @@ int ObjectRef::l_set_lighting(lua_State *L)
 			getfloatfield(L, -1, "intensity", lighting.shadow_intensity);
 			getfloatfield(L, -1, "main_shadow_factor", lighting.main_shadow_factor);
 			getfloatfield(L, -1, "ambient_occlusion_factor", lighting.ambient_occlusion_factor);
-			getfloatfield(L, -1, "normal_ao_factor", lighting.ambient_occlusion_factor);
+			getfloatfield(L, -1, "normal_ao_factor", lighting.normal_ao_factor);
 			getintfield(L, -1, "ambient_light_color", lighting.ambient_light_color);
 		}
 		lua_pop(L, 1); // shadows

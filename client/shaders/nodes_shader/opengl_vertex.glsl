@@ -53,8 +53,11 @@ const float BS = 10.0;
 uniform float xyPerspectiveBias0;
 uniform float xyPerspectiveBias1;
 uniform float zPerspectiveBias;
+
+
 uniform float main_shadow_factor;
 uniform float ambient_occlusion_factor;
+uniform float normal_ao_factor;
 uniform vec3 ambient_light_color;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
@@ -212,56 +215,33 @@ void main(void)
 #else
 	vec4 color = inVertexColor;
 #endif
+
 	vec3 ambientOcclsionShadow = (clamp(inVertexColorEx.rgb, ambient_occlusion_factor, 1));
 
-	vec3 commonShadow = clamp(inVertexColor.rgb, main_shadow_factor, 1);
+	vec3 commonShadow = clamp(inVertexColor.rgb, main_shadow_factor, 1) ;
 
-	if (vNormal.y >= 1) {
-		ambientOcclsionShadow.rgb -= 0.09;
-	} else if (vNormal.y <= -1) {
-		ambientOcclsionShadow.rgb -= 0.09;
-	}
+	vec3 normalAo = vec3(1,1,1);
 
-	if (vNormal.z >= 1) {
-		ambientOcclsionShadow.rgb -= 0.05;
-	} else if (vNormal.z <= -1) {
-		ambientOcclsionShadow.rgb -= 0.05;
+	if (vNormal.y != 0) {
+		normalAo.rgb -= 0.015 * (normal_ao_factor * 20);
 	}
 
-	if (vNormal.x >= 1) {
-		ambientOcclsionShadow.rgb -= 0.03;
+	if (vNormal.z != 0) {
+		normalAo.rgb -= 0.02 * (normal_ao_factor * 20);
 	}
-	if (vNormal.x <= -1) {
-		ambientOcclsionShadow.rgb -= 0.03;
+
+	if (vNormal.x != 0) {
+		normalAo.rgb -= 0.025 * (normal_ao_factor * 20);
 	}
+
 	
+	vec3 combinedShadows = ambientOcclsionShadow * commonShadow * normalAo ;
 
+	if (inVertexColor.r != inVertexColor.g && inVertexColor.g != inVertexColor.b) {
+		combinedShadows = inVertexColor.rgb;
+	}
 
-	vec3 combinedShadows = ambientOcclsionShadow * commonShadow;
-
-
-
-
-	color.rgb = combinedShadows ;
-	
-	// The alpha gives the ratio of sunlight in the incoming light.
-	// color = inVertexColor;
-	// if (inVertexColorEx.r < 0.) {
-	// 	// color = mix(inVertexColor, inVertexColorEx, main_shadow_factor);
-	// 	color *= inVertexColorEx;
-	// }
-	// color = inVertexColorEx;
-	// color.rgb = color.rgb + (main_shadow_factor * 2);
-	// if (main_shadow_factor == 1) {
-	// 		color = mix((clamp(color.rgba * main_shadow_factor, 0, 1)), clamp(inVertexColorEx.rgba, 0, 1), 0.5);
-	// }
-	
-	// color.rgb += inVertexColor.rgb;
-	// color.rgb -=  abs((inVertexColorEx.rgb) - ambient_occlusion_factor);
-	// color.rgb += vec3(1,1,1) * main_shadow_factor;
-
-	// color = inVertexColorEx + ambient_occlusion_factor;
-	// color = inVertexColor + main_shadow_factor;
+	color.rgb = combinedShadows;
 	nightRatio = 1.0 - color.a;
 	vec3 dayLight2 = dayLight;
 	if ((ambient_light_color.x + ambient_light_color.y + ambient_light_color.z) != 0) {

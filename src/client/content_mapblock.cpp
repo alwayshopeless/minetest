@@ -481,7 +481,7 @@ void MapblockMeshGenerator::drawSolidNode()
 				vertex.AmbientColor = encode_light_ao(final_lights_ao[j], cur_node.f->light_source);
 				// vertex.AmbientColor = encode_light(final_lights_ao[j], cur_node.f->light_source);
 				if (!cur_node.f->light_source) {
-					// applyFacesShading(vertex.Color, vertex.Normal);
+					applyFacesShading(vertex.Color, vertex.Normal);
 					// applyFacesShading(vertex.AmbientColor, vertex.Normal);
 				}
 

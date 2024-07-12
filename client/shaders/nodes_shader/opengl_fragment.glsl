@@ -450,8 +450,6 @@ void main(void)
 		- fogShadingParameter * length(eyeVec) / fogDistance, 0.0, 1.0);
 	col = mix(fogColor, col, clarity);
 	col = vec4(col.rgb, base.a);
-	// if (varColorEx.r != 1) {
-	// col.rgb = mix(color.rgb, vec3(0,0,0), (1 -varColorEx.r));
-	// }
+
 	gl_FragData[0] = col;
 }

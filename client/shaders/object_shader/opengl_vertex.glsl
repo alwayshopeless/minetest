@@ -2,6 +2,7 @@ uniform mat4 mWorld;
 uniform vec3 dayLight;
 uniform float animationTimer;
 uniform lowp vec4 emissiveColor;
+uniform float main_shadow_factor;
 
 varying vec3 vNormal;
 varying vec3 vPosition;
@@ -115,7 +116,7 @@ void main(void)
 	vec4 color = inVertexColor;
 #endif
 
-	color *= emissiveColor;
+	color *= clamp(emissiveColor, main_shadow_factor, 1);
 
 	// The alpha gives the ratio of sunlight in the incoming light.
 	nightRatio = 1.0 - color.a;
