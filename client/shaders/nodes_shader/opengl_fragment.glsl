@@ -1,6 +1,8 @@
 uniform sampler2D baseTexture;
 
 uniform vec3 dayLight;
+uniform float normal_ao_factor;
+
 uniform lowp vec4 fogColor;
 uniform float fogDistance;
 uniform float fogShadingParameter;
@@ -431,8 +433,9 @@ void main(void)
 	float flashDiffDist = clamp(distance(camPosTemp.xyz, vPosition.xyz), 1, 999);
 
 	flashDiff = clamp(flashDiff, 0.4, 1000);
-    flashLightMask.rgb -=  (flashDiff / 2) - (flashDiffDist/ 10) ;
-	// flashLightMask.rgb += ;
+    flashLightMask.rgb -=  (flashDiff / 30);
+	flashLightMask.rgb += (flashDiffDist/ 300) - (normal_ao_factor * 10);
+
 	flashLightMask =clamp(flashLightMask, 0.1, 0.4);
 	varColor22 += flashLightMask;
 	vec4 col = vec4(color.rgb * varColor22.rgb, 1.0);
