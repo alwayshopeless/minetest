@@ -58,8 +58,8 @@ struct Lighting
 	float saturation {1.0f};
 	float volumetric_light_strength {0.0f};
 	
-	float main_shadow_factor {1.0f};
-	float ambient_occlusion_factor {1.0f};
+	float main_shadow_factor {0.0f};
+	float ambient_occlusion_factor {0.0f};
 	float normal_ao_factor {1.0f};
 
 	Uint32 ambient_light_color {0xffffffff};

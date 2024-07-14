@@ -8,6 +8,8 @@ uniform float fogShadingParameter;
 // The cameraOffset is the current center of the visible world.
 uniform highp vec3 cameraOffset;
 uniform float animationTimer;
+	uniform vec4 CameraPos;
+
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	// shadow texture
 	uniform sampler2D ShadowMapSampler;
@@ -17,7 +19,6 @@ uniform float animationTimer;
 	uniform mat4 m_ShadowViewProj;
 	uniform float f_shadowfar;
 	uniform float f_shadow_strength;
-	uniform vec4 CameraPos;
 	uniform float xyPerspectiveBias0;
 	uniform float xyPerspectiveBias1;
 
@@ -50,6 +51,47 @@ centroid varying vec2 varTexCoord;
 #endif
 varying highp vec3 eyeVec;
 varying float nightRatio;
+
+
+float toRadians(float degrees) {
+    return degrees * 3.14159265359 / 180.0;
+}
+
+mat3 createRotationMatrix(float pitch, float yaw) {
+    float cosPitch = cos(pitch);
+    float sinPitch = sin(pitch);
+    float cosYaw = cos(yaw);
+    float sinYaw = sin(yaw);
+
+    mat3 rotationYaw = mat3(
+        cosYaw,  0.0, sinYaw,
+        0.0,     1.0, 0.0,
+        -sinYaw, 0.0, cosYaw
+    );
+
+    mat3 rotationPitch = mat3(
+        1.0,    0.0,     0.0,
+        0.0, cosPitch, -sinPitch,
+        0.0, sinPitch,  cosPitch
+    );
+
+    return rotationPitch * rotationYaw;
+}
+
+
+float flashlightIntencity(vec3 flashlightPos, vec3 fragPos, float pitch_deg, float yaw_deg) {
+    vec3 toFrag = fragPos.xyz - flashlightPos;
+    float pitch_deg2 = (-pitch_deg) + 90;
+    float pitch_rad = toRadians(pitch_deg2);
+    float yaw_rad = toRadians(yaw_deg);
+//    pitch_rad = 0;
+    mat3 rotationMatrix = createRotationMatrix(pitch_rad, yaw_rad);
+    vec3 rotatedFragPos = rotationMatrix * toFrag;
+    vec3 fragPos2 = flashlightPos + rotatedFragPos;
+
+    return distance(flashlightPos.xz, fragPos2.xz);
+}
+
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 
@@ -380,7 +422,20 @@ void main(void)
 #endif
 
 	color = base.rgb;
-	vec4 col = vec4(color.rgb * varColor.rgb, 1.0);
+	vec3 varColor22 = varColor.rgb;
+	vec3 flashLightMask = vec3(1,1,1);
+		vec2 eye_vec = vec2(0, 0);
+	vec3 camPosTemp = CameraPos.xyz;
+	camPosTemp.y += 2.0;
+	float flashDiff = flashlightIntencity(camPosTemp.xyz, eyeVec.xyz, eye_vec.x, eye_vec.y);
+	float flashDiffDist = clamp(distance(camPosTemp.xyz, vPosition.xyz), 1, 999);
+
+	flashDiff = clamp(flashDiff, 0.4, 1000);
+    flashLightMask.rgb -=  (flashDiff / 2) - (flashDiffDist/ 10) ;
+	// flashLightMask.rgb += ;
+	flashLightMask =clamp(flashLightMask, 0.1, 0.4);
+	varColor22 += flashLightMask;
+	vec4 col = vec4(color.rgb * varColor22.rgb, 1.0);
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	if (f_shadow_strength > 0.0) {
@@ -450,6 +505,10 @@ void main(void)
 		- fogShadingParameter * length(eyeVec) / fogDistance, 0.0, 1.0);
 	col = mix(fogColor, col, clarity);
 	col = vec4(col.rgb, base.a);
+
+	// float pitch = atan2(-mWorldViewProj[2][0], sqrt(mWorldViewProj[0][0]^2 + mWorldViewProj[1][0]^2));
+	// float yaw = atan2(mWorldViewProj[1][0], mWorldViewProj[0][0])
+
 
 	gl_FragData[0] = col;
 }
