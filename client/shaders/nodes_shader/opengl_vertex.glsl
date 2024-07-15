@@ -7,6 +7,8 @@ uniform highp vec3 cameraOffset;
 uniform float animationTimer;
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying vec3 vertexWorldPos;
+varying vec3 extraShadow;
 // World position in the visible world (i.e. relative to the cameraOffset.)
 // This can be used for many shader effects without loss of precision.
 // If the absolute position is required it can be calculated with
@@ -24,6 +26,8 @@ varying mediump vec2 varTexCoord;
 #else
 centroid varying vec2 varTexCoord;
 #endif
+	uniform vec4 CameraPos;
+
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	// shadow uniforms
 	uniform vec3 v_LightDirection;
@@ -264,6 +268,7 @@ void main(void)
 
 	vec3 commonShadow = clamp(inVertexColor.rgb, main_shadow_factor, 1) ;
 
+
 	vec3 normalAo = vec3(1,1,1);
 
 	if (vNormal.y != 0) {
@@ -277,13 +282,36 @@ void main(void)
 	if (vNormal.x != 0) {
 		normalAo.rgb -= 0.025 * (normal_ao_factor * 20);
 	}
+	vertexWorldPos = -(mWorldView * inVertexPosition).xyz;
+	extraShadow = ambientOcclsionShadow * normalAo;
+	// vec3 flashLightMask = vec3(1,1,1);
+	// 	vec2 eye_vec = vec2(0, 0);
+	// vec3 camPosTemp = CameraPos.xyz;
+	// camPosTemp.y += 3.0;
+	// vec3 eyeVec2 = -(mWorldView * inVertexPosition).xyz;
+	// float flashDiff = flashlightIntencity(camPosTemp.xyz, eyeVec2.xyz, eye_vec.x, eye_vec.y);
+	// float flashDiffDist = distance(camPosTemp.xyz, eyeVec2.xyz);
 
+	// // flashDiff = clamp(flashDiff, 0.4, 1000);
+	// // flashLightMask.rgb += (flashDiffDist/ 300) ;
+
+    // // flashLightMask.rgb -=  (flashDiff / (flashDiffDist * 0.262 + 5) );
+    // flashLightMask.rgb -=  (flashDiff / (flashDiffDist * normal_ao_factor + 5) );
+
+	// // flashLightMask =clamp(flashLightMask, 0.0, 1.0 - (flashDiffDist/ (50 * (normal_ao_factor * 30))));
+	// commonShadow *= clamp(flashLightMask, vec3(0,0,0), vec3(1,1,1));
+
+
+
+
+	// commonShadow += varColor22;
+	// commonShadow.rgb = clamp(varColor22.rgb, vec3(0,0,0), (varColor22.rgb - 0.1));
 	
-	vec3 combinedShadows = ambientOcclsionShadow * commonShadow * normalAo ;
+	vec3 combinedShadows = ambientOcclsionShadow * normalAo * commonShadow ;
 
-	if (inVertexColor.r != inVertexColor.g && inVertexColor.g != inVertexColor.b) {
-		combinedShadows = inVertexColor.rgb;
-	}
+	// if (inVertexColor.r != inVertexColor.g && inVertexColor.g != inVertexColor.b) {
+	// 	combinedShadows = inVertexColor.rgb;
+	// }
 
 	color.rgb = combinedShadows;
 	nightRatio = 1.0 - color.a;

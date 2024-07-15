@@ -10,7 +10,9 @@ uniform float fogShadingParameter;
 // The cameraOffset is the current center of the visible world.
 uniform highp vec3 cameraOffset;
 uniform float animationTimer;
-	uniform vec4 CameraPos;
+uniform vec4 CameraPos;
+varying vec3 vertexWorldPos;
+varying vec3 extraShadow;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	// shadow texture
@@ -27,7 +29,6 @@ uniform float animationTimer;
 	varying float adj_shadow_strength;
 	varying float cosLight;
 	varying float f_normal_length;
-	varying vec3 shadow_position;
 	varying float perspective_factor;
 #endif
 
@@ -424,21 +425,34 @@ void main(void)
 #endif
 
 	color = base.rgb;
-	vec3 varColor22 = varColor.rgb;
-	vec3 flashLightMask = vec3(1,1,1);
+
+			vec3 flashLightMask = vec3(1,1,1);
 		vec2 eye_vec = vec2(0, 0);
 	vec3 camPosTemp = CameraPos.xyz;
-	camPosTemp.y += 2.0;
-	float flashDiff = flashlightIntencity(camPosTemp.xyz, eyeVec.xyz, eye_vec.x, eye_vec.y);
-	float flashDiffDist = clamp(distance(camPosTemp.xyz, vPosition.xyz), 1, 999);
+	camPosTemp.y -= 2;
+	vec3 eyeVec2 = vertexWorldPos.xyz;
+	float flashDiff = flashlightIntencity(camPosTemp.xyz, eyeVec2.xyz, eye_vec.x, eye_vec.y);
+	float flashDiffDist = distance(camPosTemp.xyz, eyeVec2.xyz);
 
 	flashDiff = clamp(flashDiff, 0.4, 1000);
-    flashLightMask.rgb -=  (flashDiff / 30);
-	flashLightMask.rgb += (flashDiffDist/ 300) - (normal_ao_factor * 10);
 
-	flashLightMask =clamp(flashLightMask, 0.1, 0.4);
-	varColor22 += flashLightMask;
-	vec4 col = vec4(color.rgb * varColor22.rgb, 1.0);
+    flashLightMask.rgb -=  (flashDiff / (flashDiffDist * 0.370  + 1.5) );
+    // flashLightMask.rgb -=  (flashDiff / (30) );
+
+	// flashLightMask = smoothstep(flashLightMask * 30, flashLightMask,  vec3(1.0,1.0,1.0));
+
+	// flashLightMask = clamp(flashLightMask * clamp(2 - (flashDiffDist / (normal_ao_factor * 100)), 0, 2), vec3(0,0,0), vec3(1,1,1));
+	// flashLightMask = clamp(flashLightMask * clamp(2 - (flashDiffDist / (normal_ao_factor * 1000)), 0, 2), vec3(0,0,0), vec3(1,1,1));
+
+
+	flashLightMask = clamp(flashLightMask, 0, 0.6);
+
+		flashLightMask =clamp(flashLightMask, 0.0, 1.0 - (flashDiffDist/ (50 * (normal_ao_factor * 10))));
+
+	vec3 varColor2 = varColor.rgb;
+	varColor2.rgb += flashLightMask.rgb ;
+	varColor2.rgb = clamp(varColor2.rgb, 0, 1);
+	vec4 col = vec4(color.rgb * varColor2.rgb, 1.0);
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	if (f_shadow_strength > 0.0) {
@@ -511,6 +525,8 @@ void main(void)
 
 	// float pitch = atan2(-mWorldViewProj[2][0], sqrt(mWorldViewProj[0][0]^2 + mWorldViewProj[1][0]^2));
 	// float yaw = atan2(mWorldViewProj[1][0], mWorldViewProj[0][0])
+
+
 
 
 	gl_FragData[0] = col;
