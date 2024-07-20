@@ -429,29 +429,35 @@ void main(void)
 			vec3 flashLightMask = vec3(1,1,1);
 		vec2 eye_vec = vec2(0, 0);
 	vec3 camPosTemp = CameraPos.xyz;
-	camPosTemp.y -= 2;
-	vec3 eyeVec2 = vertexWorldPos.xyz;
-	float flashDiff = flashlightIntencity(camPosTemp.xyz, eyeVec2.xyz, eye_vec.x, eye_vec.y);
-	float flashDiffDist = distance(camPosTemp.xyz, eyeVec2.xyz);
+	// camPosTemp.y -= (normal_ao_factor * 20);
 
-	flashDiff = clamp(flashDiff, 0.4, 1000);
+	// camPosTemp.xz -= (normal_ao_factor * 20);
+	// vec3 eyeVec2 = vertexWorldPos.xyz;
+	// float flashDiff = flashlightIntencity(camPosTemp.xyz, eyeVec2.xyz, eye_vec.x, eye_vec.y);
+	// float flashDiffDist = distance(camPosTemp.xyz, eyeVec2.xyz);
 
-    flashLightMask.rgb -=  (flashDiff / (flashDiffDist * 0.370  + 1.5) );
+	// flashDiff = clamp(flashDiff, 0.4, 1000);
+
+    // // flashLightMask.rgb -=  (flashDiff / (flashDiffDist * 0.370  + 1.5) );
+	// if (flashDiff > 3) {
+    // flashLightMask.rgb -=  (flashDiff / (30) );
+
+	// }
     // flashLightMask.rgb -=  (flashDiff / (30) );
 
 	// flashLightMask = smoothstep(flashLightMask * 30, flashLightMask,  vec3(1.0,1.0,1.0));
 
-	// flashLightMask = clamp(flashLightMask * clamp(2 - (flashDiffDist / (normal_ao_factor * 100)), 0, 2), vec3(0,0,0), vec3(1,1,1));
-	// flashLightMask = clamp(flashLightMask * clamp(2 - (flashDiffDist / (normal_ao_factor * 1000)), 0, 2), vec3(0,0,0), vec3(1,1,1));
+	// flashLightMask = clamp(flashLightMask * clamp(4 - (flashDiffDist / (normal_ao_factor * 100)), 0, 4), vec3(0,0,0), vec3(1,1,1));
+	// flashLightMask = clamp(flashLightMask * 10, vec3(0,0,0), vec3(1,1,1));
 
 
-	flashLightMask = clamp(flashLightMask, 0, 0.6);
+	// flashLightMask = clamp(flashLightMask, vec3(0,0,0), extraShadow);
 
-		flashLightMask =clamp(flashLightMask, 0.0, 1.0 - (flashDiffDist/ (50 * (normal_ao_factor * 10))));
+		// flashLightMask =clamp(flashLightMask, 0.0, 1.0 - (flashDiffDist/ (50 * (normal_ao_factor * 10))));
 
 	vec3 varColor2 = varColor.rgb;
-	varColor2.rgb += flashLightMask.rgb ;
-	varColor2.rgb = clamp(varColor2.rgb, 0, 1);
+	// varColor2.rgb += flashLightMask.rgb ;
+	// varColor2.rgb = clamp(varColor2.rgb, 0, 1);
 	vec4 col = vec4(color.rgb * varColor2.rgb, 1.0);
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
